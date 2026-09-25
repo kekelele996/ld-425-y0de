@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { BudgetItem } from '../../models/budgetItem.entity';
 import { ConstructionNode } from '../../models/constructionNode.entity';
 import { DesignPhase } from '../../models/designPhase.entity';
+import { DesignSubmission } from '../../models/designSubmission.entity';
 import { MaterialItem } from '../../models/materialItem.entity';
 import { RenovationProject } from '../../models/project.entity';
 import { AcceptanceStatus, BudgetCategory, ConstructionPhase, DecorStyle, HouseType, PhaseStatus, ProjectStatus, PurchaseStatus } from '../../types/enums';
@@ -14,6 +15,7 @@ export class SeedService {
   constructor(
     @InjectRepository(RenovationProject) private readonly projectRepo: Repository<RenovationProject>,
     @InjectRepository(DesignPhase) private readonly designRepo: Repository<DesignPhase>,
+    @InjectRepository(DesignSubmission) private readonly submissionRepo: Repository<DesignSubmission>,
     @InjectRepository(MaterialItem) private readonly materialRepo: Repository<MaterialItem>,
     @InjectRepository(BudgetItem) private readonly budgetRepo: Repository<BudgetItem>,
     @InjectRepository(ConstructionNode) private readonly constructionRepo: Repository<ConstructionNode>
@@ -38,9 +40,44 @@ export class SeedService {
       expectedEndDate: '2026-09-18'
     }));
 
-    await this.designRepo.save([
-      this.designRepo.create({ projectId: project.id, name: '方案设计', designerId: 'designer-001', status: PhaseStatus.Approved, version: 3, description: '开放式客餐厅与收纳墙方案。', fileUrls: ['/uploads/design-plan.pdf'], reviewComment: '通过，厨房动线保留。', reviewerId: 'owner-001' }),
-      this.designRepo.create({ projectId: project.id, name: '施工图', designerId: 'designer-001', status: PhaseStatus.InProgress, version: 2, description: '水电点位和吊顶节点深化中。', fileUrls: ['/uploads/construction-v2.pdf'] })
+    const planPhase = this.designRepo.create({ projectId: project.id, name: '方案设计', designerId: 'designer-001', status: PhaseStatus.Approved, version: 1, description: '开放式客餐厅与收纳墙方案。', fileUrls: ['/uploads/design-plan.pdf'] });
+    const drawingPhase = this.designRepo.create({ projectId: project.id, name: '施工图', designerId: 'designer-001', status: PhaseStatus.InProgress, version: 2, description: '水电点位和吊顶节点深化（已补充开关回路）。', fileUrls: ['/uploads/construction-v2.pdf'] });
+    await this.designRepo.save([planPhase, drawingPhase]);
+
+    await this.submissionRepo.save([
+      this.submissionRepo.create({
+        phaseId: planPhase.id,
+        version: 1,
+        description: '开放式客餐厅与收纳墙方案。',
+        fileUrls: ['/uploads/design-plan.pdf'],
+        status: PhaseStatus.Approved,
+        reviewComment: '通过，厨房动线保留。',
+        reviewerId: 'owner-001',
+        reviewedAt: new Date('2026-05-06T10:00:00Z'),
+        submitterId: 'designer-001',
+        submittedAt: new Date('2026-05-04T09:00:00Z')
+      }),
+      this.submissionRepo.create({
+        phaseId: drawingPhase.id,
+        version: 1,
+        description: '水电点位初版图。',
+        fileUrls: ['/uploads/construction-v1.pdf'],
+        status: PhaseStatus.Revision,
+        reviewComment: '玄关缺少双控开关，请补充回路。',
+        reviewerId: 'owner-001',
+        reviewedAt: new Date('2026-05-12T15:30:00Z'),
+        submitterId: 'designer-001',
+        submittedAt: new Date('2026-05-10T11:00:00Z')
+      }),
+      this.submissionRepo.create({
+        phaseId: drawingPhase.id,
+        version: 2,
+        description: '水电点位和吊顶节点深化（已补充开关回路）。',
+        fileUrls: ['/uploads/construction-v2.pdf'],
+        status: PhaseStatus.InProgress,
+        submitterId: 'designer-001',
+        submittedAt: new Date('2026-05-14T09:30:00Z')
+      })
     ]);
 
     await this.materialRepo.save([

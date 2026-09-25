@@ -9,6 +9,7 @@ import { ConstructionController } from './controllers/construction.controller';
 import { HealthController } from './controllers/health.controller';
 import { RenovationProject } from './models/project.entity';
 import { DesignPhase } from './models/designPhase.entity';
+import { DesignSubmission } from './models/designSubmission.entity';
 import { MaterialItem } from './models/materialItem.entity';
 import { BudgetItem } from './models/budgetItem.entity';
 import { ConstructionNode } from './models/constructionNode.entity';
@@ -26,7 +27,7 @@ import { auditLogMiddleware } from './middlewares/auditLog.middleware';
 @Module({
   imports: [
     TypeOrmModule.forRoot(databaseConfig),
-    TypeOrmModule.forFeature([RenovationProject, DesignPhase, MaterialItem, BudgetItem, ConstructionNode, AuditLog])
+    TypeOrmModule.forFeature([RenovationProject, DesignPhase, DesignSubmission, MaterialItem, BudgetItem, ConstructionNode, AuditLog])
   ],
   controllers: [HealthController, ProjectController, DesignController, MaterialController, BudgetController, ConstructionController],
   providers: [ProjectService, DesignService, MaterialService, BudgetService, ConstructionService, AuditLogService, SeedService]
