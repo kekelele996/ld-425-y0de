@@ -1,6 +1,7 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { PhaseStatus } from '../types/enums';
 import { RenovationProject } from './project.entity';
+import { DesignVersion } from './designVersion.entity';
 
 @Entity('design_phases')
 export class DesignPhase {
@@ -32,8 +33,11 @@ export class DesignPhase {
   fileUrls: string[];
 
   @Column('text', { nullable: true })
-  reviewComment?: string;
+  reviewComment?: string | null;
 
   @Column({ nullable: true })
-  reviewerId?: string;
+  reviewerId?: string | null;
+
+  @OneToMany(() => DesignVersion, (version) => version.phase)
+  versions: DesignVersion[];
 }

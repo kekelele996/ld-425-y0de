@@ -33,6 +33,12 @@ export enum ConstructionPhase {
   SoftFurnishing = 'SoftFurnishing'
 }
 
+export enum VersionReviewStatus {
+  Pending = 'Pending',
+  Approved = 'Approved',
+  Rejected = 'Rejected'
+}
+
 export enum PurchaseStatus {
   NotPurchased = 'NotPurchased',
   Ordered = 'Ordered',

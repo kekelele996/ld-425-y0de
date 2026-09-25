@@ -12,9 +12,14 @@ export class DesignController {
     return ok(await this.service.findAll());
   }
 
+  @Get(':id/versions')
+  async versions(@Param('id') id: string) {
+    return ok(await this.service.findVersions(id));
+  }
+
   @Post(':id/submit')
-  async submit(@Param('id') id: string, @Req() req: Request) {
-    return ok(await this.service.submit(id, req.user?.id ?? 'demo-designer'));
+  async submit(@Param('id') id: string, @Body() body: { description: string; fileUrls: string[] }, @Req() req: Request) {
+    return ok(await this.service.submit(id, body.description, body.fileUrls, req.user?.id ?? 'demo-designer'));
   }
 
   @Post(':id/review')

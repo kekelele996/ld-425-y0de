@@ -4,9 +4,10 @@ import { Repository } from 'typeorm';
 import { BudgetItem } from '../../models/budgetItem.entity';
 import { ConstructionNode } from '../../models/constructionNode.entity';
 import { DesignPhase } from '../../models/designPhase.entity';
+import { DesignVersion } from '../../models/designVersion.entity';
 import { MaterialItem } from '../../models/materialItem.entity';
 import { RenovationProject } from '../../models/project.entity';
-import { AcceptanceStatus, BudgetCategory, ConstructionPhase, DecorStyle, HouseType, PhaseStatus, ProjectStatus, PurchaseStatus } from '../../types/enums';
+import { AcceptanceStatus, BudgetCategory, ConstructionPhase, DecorStyle, HouseType, PhaseStatus, ProjectStatus, PurchaseStatus, VersionReviewStatus } from '../../types/enums';
 import { calculateMaterialTotal, calculateVariance } from '../../utils/budgetCalculator';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class SeedService {
   constructor(
     @InjectRepository(RenovationProject) private readonly projectRepo: Repository<RenovationProject>,
     @InjectRepository(DesignPhase) private readonly designRepo: Repository<DesignPhase>,
+    @InjectRepository(DesignVersion) private readonly versionRepo: Repository<DesignVersion>,
     @InjectRepository(MaterialItem) private readonly materialRepo: Repository<MaterialItem>,
     @InjectRepository(BudgetItem) private readonly budgetRepo: Repository<BudgetItem>,
     @InjectRepository(ConstructionNode) private readonly constructionRepo: Repository<ConstructionNode>
@@ -38,9 +40,17 @@ export class SeedService {
       expectedEndDate: '2026-09-18'
     }));
 
-    await this.designRepo.save([
+    const [planPhase, constructionPhase] = await this.designRepo.save([
       this.designRepo.create({ projectId: project.id, name: '方案设计', designerId: 'designer-001', status: PhaseStatus.Approved, version: 3, description: '开放式客餐厅与收纳墙方案。', fileUrls: ['/uploads/design-plan.pdf'], reviewComment: '通过，厨房动线保留。', reviewerId: 'owner-001' }),
       this.designRepo.create({ projectId: project.id, name: '施工图', designerId: 'designer-001', status: PhaseStatus.InProgress, version: 2, description: '水电点位和吊顶节点深化中。', fileUrls: ['/uploads/construction-v2.pdf'] })
+    ]);
+
+    await this.versionRepo.save([
+      this.versionRepo.create({ phaseId: planPhase.id, version: 1, description: '首版平面布局方案。', fileUrls: ['/uploads/plan-v1.pdf'], status: VersionReviewStatus.Rejected, reviewComment: '客厅动线不合理，请调整。', reviewerId: 'owner-001', reviewedAt: new Date('2026-04-12T10:00:00') }),
+      this.versionRepo.create({ phaseId: planPhase.id, version: 2, description: '调整动线并增加玄关柜。', fileUrls: ['/uploads/plan-v2.pdf'], status: VersionReviewStatus.Rejected, reviewComment: '收纳空间仍不足。', reviewerId: 'owner-001', reviewedAt: new Date('2026-04-20T15:30:00') }),
+      this.versionRepo.create({ phaseId: planPhase.id, version: 3, description: '开放式客餐厅与收纳墙方案。', fileUrls: ['/uploads/design-plan.pdf'], status: VersionReviewStatus.Approved, reviewComment: '通过，厨房动线保留。', reviewerId: 'owner-001', reviewedAt: new Date('2026-04-28T09:10:00') }),
+      this.versionRepo.create({ phaseId: constructionPhase.id, version: 1, description: '施工图首版，含平面与立面。', fileUrls: ['/uploads/construction-v1.pdf'], status: VersionReviewStatus.Rejected, reviewComment: '缺少水电点位图，请补充。', reviewerId: 'owner-001', reviewedAt: new Date('2026-05-06T14:00:00') }),
+      this.versionRepo.create({ phaseId: constructionPhase.id, version: 2, description: '水电点位和吊顶节点深化中。', fileUrls: ['/uploads/construction-v2.pdf'], status: VersionReviewStatus.Pending })
     ]);
 
     await this.materialRepo.save([

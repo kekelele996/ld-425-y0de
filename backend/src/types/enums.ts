@@ -32,6 +32,12 @@ export enum PhaseStatus {
   Approved = 'Approved'
 }
 
+export enum VersionReviewStatus {
+  Pending = 'Pending',
+  Approved = 'Approved',
+  Rejected = 'Rejected'
+}
+
 export enum PurchaseStatus {
   NotPurchased = 'NotPurchased',
   Ordered = 'Ordered',
